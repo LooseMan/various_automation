@@ -1,0 +1,16 @@
+class hoge {
+public:
+    // コンストラクタ
+    hoge(std::string name, int age) : name_(name), age_(age)
+    {
+    }
+
+    // デストラクタ
+    ~hoge()
+    {
+    }
+
+private:
+    std::string name_;
+    int age_;
+};
