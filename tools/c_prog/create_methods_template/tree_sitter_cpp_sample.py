@@ -45,7 +45,11 @@ def analyze_cpp_file(file_path):
     query_string = """
     (class_specifier) @class
     (function_definition) @function
-    (field_declaration) @field
+    (
+      field_declaration
+        declarator: (function_declarator
+          declarator: (field_identifier) @func_name)
+    ) @function
     """
     query = Query(cpp_lang, query_string)
     cursor = QueryCursor(query)
