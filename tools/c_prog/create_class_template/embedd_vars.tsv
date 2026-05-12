@@ -1,0 +1,4 @@
+type	name	args
+int	hoge	void
+double	fuga	void
+		
