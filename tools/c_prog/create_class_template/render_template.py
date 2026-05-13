@@ -6,11 +6,19 @@ from jinja2 import Environment, FileSystemLoader
 import csv
 import sys
 
-def main(template_file: Path, vars_path: Path, rendered_file: Path):
+# 独自フィルタ
+def first_upper(value):
+    if not value:
+        return value
+    return value[0].upper() + value[1:]
+
+def render_template(template_file: Path, vars_path: Path, rendered_file: Path):
     # Jinja 環境
     env = Environment(
         loader=FileSystemLoader(template_file.parent),
     )
+    # Jinja2環境に登録
+    env.filters['first_upper'] = first_upper
     template = env.get_template(template_file.name)
     
     # 出力先ディレクトリの作成
@@ -30,8 +38,6 @@ def main(template_file: Path, vars_path: Path, rendered_file: Path):
                 
                 # 1行分の結果を書き込み（最後に改行を入れると繋がらない）
                 out_f.write(rendered + "\n")
-                
-    print(f"すべてのデータを {rendered_file} にまとめました。")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -42,4 +48,4 @@ if __name__ == "__main__":
     parser.add_argument("rendered_file", type=Path)
 
     args = parser.parse_args()
-    main(args.template_file, args.vars_file, args.rendered_file)
+    render_template(args.template_file, args.vars_file, args.rendered_file)
