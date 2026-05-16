@@ -26,27 +26,11 @@ def render_templates_in_folder(
         print(f"{template_dir}に .j2 ファイルがありません。")
         return
 
-    # env = Environment(loader=FileSystemLoader(str(template_dir)))
-
-    # CSV読み込み
-    # with vars_path.open(encoding='utf-8') as f:
-    #     reader = csv.DictReader(f, delimiter='\t')
-    #     rows = list(reader)  # まとめて読んでおく
-
     for j2f in j2_files:
         # template = env.get_template(j2f.name)
         out_name = j2f.stem  # .j2を除いたファイル名
         rendered_file = output_dir / out_name
 
-        # 出力先ディレクトリ作成
-        # rendered_file.parent.mkdir(parents=True, exist_ok=True)
-        # rendered_file.write_text("", encoding='utf-8')
-
-        # レンダリングして追記
-        # with rendered_file.open(mode='a', encoding='utf-8') as out_f:
-        #     for row in rows:
-        #         rendered = template.render(**row)
-        #         out_f.write(rendered + "\n")
         render_template(j2f, vars_path, rendered_file)
 
         print(f"{j2f.name} → {rendered_file.name} 保存完了")

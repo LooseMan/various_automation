@@ -8,17 +8,21 @@ import sys
 
 # 独自フィルタ
 def first_upper(value):
-    if not value:
-        return value
-    return value[0].upper() + value[1:]
+    return value[:1].upper() + value[1:]
+def pascalize(value: str):
+    return ''.join(word.lower().capitalize() for word in value.split('_'))
 
 def render_template(template_file: Path, vars_path: Path, rendered_file: Path):
-    # Jinja 環境
     env = Environment(
         loader=FileSystemLoader(template_file.parent),
     )
-    # Jinja2環境に登録
+
+    # 独自フィルタ登録
+    # - 1文字目を大文字化
     env.filters['first_upper'] = first_upper
+    # - Snake to Camel(False指定で1文字目を大文字化)
+    env.filters['pascalize'] = pascalize
+
     template = env.get_template(template_file.name)
     
     # 出力先ディレクトリの作成
