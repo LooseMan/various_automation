@@ -18,13 +18,17 @@ def render_template(template_file: Path, vars_path: Path, rendered_file: Path):
     )
 
     # 独自フィルタ登録
-    # - 1文字目を大文字化
     env.filters['first_upper'] = first_upper
-    # - Snake to Camel(False指定で1文字目を大文字化)
     env.filters['pascalize'] = pascalize
 
-    template = env.get_template(template_file.name)
+    # 1. テンプレートファイルを文字列として読み込み、'---' の行で分割
+    template_content = template_file.read_text(encoding='utf-8')
+    # Windowsの改行コード(\r\n)にも対応できるよう、改行を統一して分割します
+    blocks = [block.strip() for block in template_content.replace('\r\n', '\n').split('\n---\n')]
     
+    # 2. 各ブロックからJinja2のTemplateオブジェクトを作成
+    template_blocks = [env.from_string(block) for block in blocks if block]
+
     # 出力先ディレクトリの作成
     rendered_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -33,19 +37,20 @@ def render_template(template_file: Path, vars_path: Path, rendered_file: Path):
 
     # CSV（タブ区切り）読み込み
     with vars_path.open(encoding='utf-8') as f:
-        reader = csv.DictReader(f, delimiter='\t')
+        reader = list(csv.DictReader(f, delimiter='\t')) # 複数回ループするためリスト化
         
         # 追記モード ('a') でファイルを開く
         with rendered_file.open(mode='a', encoding='utf-8') as out_f:
-            for row in reader:
-                rendered = template.render(**row)
-                
-                # 1行分の結果を書き込み（最後に改行を入れると繋がらない）
-                out_f.write(rendered + "\n")
+            # ブロックごとに処理を行う
+            for t_block in template_blocks:
+                for row in reader:
+                    rendered = t_block.render(**row)
+                    # レンダリング結果を書き込み
+                    out_f.write(rendered + "\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Render Jinja2 template and append all to a single file"
+        description="Render Jinja2 template blocks and append all to a single file"
     )
     parser.add_argument("template_file", type=Path)
     parser.add_argument("vars_file", type=Path)
