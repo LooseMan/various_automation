@@ -12,7 +12,18 @@ def first_upper(value):
 def pascalize(value: str):
     return ''.join(word.lower().capitalize() for word in value.split('_'))
 
-def render_template(template_file: Path, vars_path: Path, rendered_file: Path):
+# argparseで「key=val」の形式をパースするためのカスタムアクション
+class ParseDict(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        d = getattr(namespace, self.dest) or {}
+        for val in values:
+            if '=' not in val:
+                raise argparse.ArgumentError(self, f"Invalid format: '{val}'. Must be 'key=value'.")
+            k, v = val.split('=', 1)
+            d[k] = v
+        setattr(namespace, self.dest, d)
+
+def render_template(template_file: Path, vars_path: Path, rendered_file: Path, extra_vars: dict):
     env = Environment(
         loader=FileSystemLoader(template_file.parent),
     )
@@ -23,7 +34,6 @@ def render_template(template_file: Path, vars_path: Path, rendered_file: Path):
 
     # 1. テンプレートファイルを文字列として読み込み、'---' の行で分割
     template_content = template_file.read_text(encoding='utf-8')
-    # Windowsの改行コード(\r\n)にも対応できるよう、改行を統一して分割します
     blocks = [block.strip() for block in template_content.replace('\r\n', '\n').split('\n---\n')]
     
     # 2. 各ブロックからJinja2のTemplateオブジェクトを作成
@@ -37,14 +47,17 @@ def render_template(template_file: Path, vars_path: Path, rendered_file: Path):
 
     # CSV（タブ区切り）読み込み
     with vars_path.open(encoding='utf-8') as f:
-        reader = list(csv.DictReader(f, delimiter='\t')) # 複数回ループするためリスト化
+        reader = list(csv.DictReader(f, delimiter='\t'))
         
         # 追記モード ('a') でファイルを開く
         with rendered_file.open(mode='a', encoding='utf-8') as out_f:
             # ブロックごとに処理を行う
             for t_block in template_blocks:
                 for row in reader:
-                    rendered = t_block.render(**row)
+                    # コマンドライン引数から渡された環境変数をマージ（コマンドライン引数を優先）
+                    merged_vars = {**row, **extra_vars}
+                    
+                    rendered = t_block.render(**merged_vars)
                     # レンダリング結果を書き込み
                     out_f.write(rendered + "\n")
 
@@ -55,6 +68,14 @@ if __name__ == "__main__":
     parser.add_argument("template_file", type=Path)
     parser.add_argument("vars_file", type=Path)
     parser.add_argument("rendered_file", type=Path)
+    parser.add_argument(
+        "-e", "--extra-vars",
+        action=ParseDict,
+        nargs="+",
+        metavar="KEY=VALUE",
+        default={},
+        help="Additional variables as key=value pairs. Can be used multiple times."
+    )
 
     args = parser.parse_args()
-    render_template(args.template_file, args.vars_file, args.rendered_file)
+    render_template(args.template_file, args.vars_file, args.rendered_file, args.extra_vars)
