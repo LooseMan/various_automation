@@ -19,7 +19,8 @@ main() {
         call_args="$*"
     fi
 
-    local pid=$(pgrep -f "^${process_name}$" | head -n 1)
+    # local pid=$(pgrep -f "^${process_name}$" | head -n 1)
+    pid=14637
     if [ -z "$pid" ]; then
         echo "Error: Process '$process_name' not found."
         return 1
@@ -38,14 +39,14 @@ main() {
         cat << EOF > "$gdb_script"
 # メモリを確保してインスタンス化
 set \$obj = (${class_name}*) malloc(sizeof(${class_name}))
-call ((\$obj)->${class_name}())
+#call ((\$obj)->${class_name}())
 
 # メソッドを実行して戻り値を出力
 print (\$obj)->${method_name}(${call_args})
 
 # 後片付け（デストラクタ呼び出しとメモリ解放）
-call ((\$obj)->~${class_name}())
-call free(\$obj)
+#call ((\$obj)->~${class_name}())
+#call free(\$obj)
 
 detach
 quit
@@ -64,6 +65,8 @@ EOF
     gdb -batch -q -p "$pid" -x "$gdb_script" &
     echo "--------------------------------------------------"
 
+    # GDBの起動完了をわずかに待ってからスクリプトファイルを削除
+    sleep 1
     rm -f "$gdb_script"
 }
 
