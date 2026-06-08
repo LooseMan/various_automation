@@ -1,6 +1,0 @@
-class: hoge
-members:
-- type: std::string
-  name: name
-- type: int
-  name: age
