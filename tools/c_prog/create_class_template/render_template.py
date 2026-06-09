@@ -23,7 +23,7 @@ class ParseDict(argparse.Action):
             d[k] = v
         setattr(namespace, self.dest, d)
 
-def render_template(template_file: Path, vars_path: Path, rendered_file: Path, extra_vars: dict):
+def render_template(template_file: Path, vars_path: Path, rendered_file: Path, extra_vars: dict = {}):
     env = Environment(
         loader=FileSystemLoader(template_file.parent),
     )
