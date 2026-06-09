@@ -1,0 +1,11 @@
+
+type: int
+
+name: sample_api
+
+params:
+- { type: std::string, name: name }
+- { type: int, name: age }
+
+results:
+- { type: &double, name: velocity }
