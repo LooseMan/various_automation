@@ -80,13 +80,9 @@ user@localhost:~$
 
 ---
 
-## Step 2: AlmaLinux 10 内での libvirt（KVM）設定 [4, 5] 
+## Step 2: AlmaLinux 10 内での libvirt（KVM）設定
 
 AlmaLinux 10が起動したら、内部に入ってKVMと、外部（Mac）から接続を待ち受けるための設定を行います。
-
-## 1. KVM・libvirtのインストール [4] 
-
-VM上で以下のコマンドを実行する
 
 ```bash
 $ sudo dnf groupinstall "Virtualization Host" -y
@@ -134,18 +130,9 @@ lines 1-26/26 (END)
 ~ % 
 ```
 
-以下のコマンドで 1 または Y が返ってくれば、AlmaLinux 10の中でKVMのアクセラレーション（加速）が利用可能です。
-
-# Intel CPUの場合
-cat /sys/module/kvm_intel/parameters/nested
-
-## 3. MacからのリモートSSH接続用の設定 [6] 
 MacのTerraformからAlmaLinux 10のlibvirtを叩く際、一般的にはSSH経由で接続します。毎回パスワードを求められないよう、MacのSSH公開鍵をAlmaLinuxの ~/.ssh/authorized_keys に登録しておきます。
-また、sudoなしで virsh 等を叩けるよう、ユーザーをグループに所属させます。 [6] 
 
-sudo usermod -aG libvirt $USER
-
-------------------------------
+---
 
 ## Step 3: MacからAlmaLinux 10上に「孫VM」を作る（Terraform）
 
@@ -318,7 +305,7 @@ Do you want to perform these actions?
   Enter a value: yes
 ```
 
-### トラブル：
+### トラブル：KVMを使用できない
 
 ```zsh
 libvirt_domain.nested_guest: Creating...
@@ -348,6 +335,11 @@ resource "libvirt_domain" "nested_guest" {
 ### トラブル：作成したVMをroot権限でしか確認できない
 
 libvirtグループへの追加だけでは足りない。
+
+```bash
+sudo usermod -aG libvirt $USER
+```
+
 以下でポリシーキットルールを追加する。
 
 ```bash
@@ -379,3 +371,42 @@ user@localhost:~$ virsh list --all
 
 user@localhost:~$ 
 ```
+
+### トラブル：cloud-init用isoイメージの作成に失敗する
+
+```zsh
+libvirt_cloudinit_disk.commoninit: Creating...
+╷
+│ Error: error while starting the creation of CloudInit's ISO image: exec: "mkisofs": executable file not found in $PATH
+│ 
+│   with libvirt_cloudinit_disk.commoninit,
+│   on main.tf line 49, in resource "libvirt_cloudinit_disk" "commoninit":
+│   49: resource "libvirt_cloudinit_disk" "commoninit" {
+│ 
+╵ 
+```
+
+MacOSの場合、デフォルトでmkisofsは入らない。また、brewからmkisofsをインストールできないため、代わりにxorrisoをインストールし、mkisofsとして使用する。
+
+```zsh
+
+brew install xorriso
+sudo ln -s $(which xorriso) /usr/local/bin/mkisofs
+
+```
+
+## ノウハウ
+
+### 環境の再作成
+
+```zsh
+
+sudo virsh destroy nested-guest-vm   # すでに停止していればエラーになりますが無視してOKです
+sudo virsh undefine nested-guest-vm  # 🌟 これで既存のUUIDが削除されます
+
+terraform init
+terraform apply
+
+```
+
+なお、cloud-init用のisoは`/var/lib/libvirt/images/commoninit.iso`としてlibvirtサーバ上に作成される。
