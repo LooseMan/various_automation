@@ -6,6 +6,7 @@ RUN dnf -y update && \
         gcc \
         gcc-c++ \
         gdb \
+        libasan \
         make \
         git \
         tar \
