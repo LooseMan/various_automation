@@ -64,11 +64,11 @@ docker build -t alma9-gdb-env .
 →"credsStore": "desktop"のdesktopを削除する！
 
 ビルド時間は pkgインストールに124  + 秒、408パッケージ(1.1GB)入る
-arakimasaya@MacBookPro almalinux-gdb % docker image list    
+almalinux-gdb % docker image list    
                                                       i Info →   U  In Use
 IMAGE                  ID             DISK USAGE   CONTENT SIZE   EXTRA
 alma9-gdb-env:latest   829be915ec97       1.66GB          373MB        
-arakimasaya@MacBookPro almalinux-gdb % 
+almalinux-gdb % 
 
 # 4. コンテナを起動 (GDB用の権限付き、カレントディレクトリをマウント)
 docker run --rm -it \
