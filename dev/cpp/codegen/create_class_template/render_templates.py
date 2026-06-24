@@ -6,7 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 import csv
 import sys
 
-from render_template import render_template
+from dev.cpp.codegen.create_class_template.render_template import render_template
 
 def render_templates_in_folder(
     template_dir: Path,
