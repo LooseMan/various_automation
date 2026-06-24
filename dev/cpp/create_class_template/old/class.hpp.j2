@@ -1,0 +1,22 @@
+class {{ class }}
+{
+public:
+    // コンストラクタ
+    // 配列の要素を横に並べる場合の記述（改行を含めない）
+    {{ class }}({% for m in members %}{{ m.type }} {{ m.name }}{{ ", " if not loop.last }}{% endfor %})
+     : {% for m in members %}{{ m.name }}_({{ m.name }}){{ ", " if not loop.last }}{% endfor %}
+    {
+    }
+
+    // デストラクタ
+    ~{{ class }}()
+    {
+    }
+
+private:
+    // 配列の要素を縦に並べる場合の記述（改行を含める）
+    {%- for m in members %}
+    {{ m.type }} {{ m.name }}_;
+    {%- endfor %}
+};
+
