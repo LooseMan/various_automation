@@ -1,9 +1,0 @@
-class: hoge
-
-members:
-- { type: std::string, name: name }
-- { type: int, name: age }
-
-functions:
-- { type: void, name: hoge, args: "int a, int b" }
-- { type: int, name: fuga, args: "int c, double* d" }

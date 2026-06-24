@@ -1,8 +1,0 @@
-START	END	TYPE	NAME/PROTOTYPE	BASE/PARENT
-8	12	Class	Animal	None
-10	10	Func	virtual void make_sound() = 0;	Animal
-11	11	Func	virtual void sleep();	Animal
-15	24	Class	Dog	Animal
-17	17	Func	void make_sound() override;	Dog
-18	18	Func	void bark();	Dog
-21	23	Func	void eat()	Dog
