@@ -1,3 +1,5 @@
+# 本ファイルは単一のLibvirtVMを直値指定で作成するもの
+
 terraform {
   required_providers {
     libvirt = {

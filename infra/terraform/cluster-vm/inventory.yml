@@ -1,0 +1,36 @@
+group_types:
+  win:
+    cpu: 2
+    memory: 4096
+
+  mac:
+    cpu: 2
+    memory: 4096
+
+  linux:
+    cpu: 4
+    memory: 8192
+
+cluster_types:
+  small:
+    win:
+      count: 1
+    mac:
+      count: 1
+    linux:
+      count: 2
+
+  large:
+    win:
+      count: 2
+    mac:
+      count: 2
+    linux:
+      count: 4
+
+clusters:
+  test01:
+    type: small
+
+  test02:
+    type: large
