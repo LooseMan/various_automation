@@ -11,43 +11,6 @@ terraform {
   }
 }
 
-variable "libvirt_uri" {
-  description = "libvirt connection URI"
-  type        = string
-  default     = "qemu+ssh://user@192.168.56.5/system"
-}
-
-variable "cluster_name" {
-  description = "Cluster name from inventory.yml"
-  type        = string
-  default     = "test01"
-}
-
-variable "network_cidr" {
-  description = "Host-only network CIDR for cluster VMs"
-  type        = string
-  default     = "192.168.150.0/24"
-}
-
-variable "ip_start_host" {
-  description = "First host number used by cluster VMs. Host .1 is reserved by libvirt."
-  type        = number
-  default     = 10
-}
-
-variable "ssh_user" {
-  description = "Initial user created by cloud-init"
-  type        = string
-  default     = "almalinux"
-}
-
-variable "ssh_password" {
-  description = "Initial password created by cloud-init"
-  type        = string
-  default     = "Password123!"
-  sensitive   = true
-}
-
 provider "libvirt" {
   uri = var.libvirt_uri
 }
@@ -173,21 +136,5 @@ resource "libvirt_domain" "cluster_vm" {
     type        = "pty"
     target_port = "0"
     target_type = "serial"
-  }
-}
-
-output "cluster_type" {
-  value = local.cluster.type
-}
-
-output "cluster_vms" {
-  value = {
-    for name, vm in local.vm_map : name => {
-      group  = vm.group_name
-      cpu    = vm.cpu
-      memory = vm.memory
-      ip     = vm.address
-      mac    = vm.mac
-    }
   }
 }
