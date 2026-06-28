@@ -1,4 +1,5 @@
 .venv/
+.cache/
 .terraform/
 .vscode/launch.json
 .vscode/tasks.json
