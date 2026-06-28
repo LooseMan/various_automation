@@ -42,6 +42,20 @@ VMにはデフォルトでvagrant/vagrantでログインできる。
 
 ### SSH接続用IPアドレス取得
 
+LibvirtのDHCPリース情報を参照して動的にIPアドレスを取得し、Ansibleのインベントリに登録してプロビジョニングを行います。
+RHEL 5（Red Hat Enterprise Linux 5）の仮想マシン（VM）が初期状態でDHCP設定（ONBOOT=yes）になっている場合、起動時にLibvirtの仮想ネットワーク（通常はvirbr0など）からIPアドレスが自動割り当てされます。この割り当てられたIPを特定し、Ansibleを実行する具体的な手順は以下の通りです。
+
+#### VMの起動とIPアドレスの特定
+
+まず、VMを起動してLibvirtが割り当てたIPアドレスを特定します。Libvirtのネットワーク管理コマンド（virsh）を使用します。
+
+* 
+* LibvirtのDHCPリース情報を確認するコマンド:
+
+virsh net-dhcp-leases default
+
+※ default はLibvirtのネットワーク名です。環境に合わせて変更してください。出力結果から該当するVMのMACアドレス、またはホスト名に対応するIPアドレスを控えます。
+
 ```bash
 #!/bin/bash
 VM_NAME="your-rhel5-vm-name" # Libvirt上のVM名
@@ -61,6 +75,30 @@ ansible-playbook -i "$VM_IP," playbook.yml -u root --private-key=/path/to/id_rsa
 ```
 
 ### 初期設定（Ansible）
+
+#### RHEL 5特有の注意点（重要）
+
+RHEL 5は非常に古いOS（Python 2.4が標準）であるため、最新のAnsibleはそのままでは動作しません。以下の2点の事前準備、または対策が必要です。
+
+* 
+* Python 2.6以上の導入:
+Ansibleを対象サーバーで動かすには、最低でもPython 2.6（Ansibleの古いバージョンを使用する場合）またはPython 2.7以降が必要です。プロビジョニング前に、VM側でEPELリポジトリなどからpython26などのパッケージを導入しておくか、手動でPythonをインストールしておく必要があります。
+* Ansibleバージョンの選定:
+最新のAnsible（2.10以降やAnsible Core）はPython 2.6/2.7のサポートを終了しています。RHEL 5を制御する場合、ローカル（コントロールノード）側で古いバージョンのAnsible（例: Ansible 2.4〜2.9など）を使用するか、raw モジュール（Python不問でSSHコマンドを直接実行するモジュール）を駆使する必要があります。
+* 
+
+#### Ansibleインベントリの構築
+
+特定したIPアドレスをAnsibleのインベントリファイル（hosts）に定義します。
+
+[rhel5_vms]
+192.168.122.50 ansible_user=root ansible_ssh_pass=YourPassword
+
+※ SSH鍵認証が設定されている場合は、ansible_ssh_private_key_file を指定してください。
+
+#### プロビジョニングの実行
+
+Pythonのバージョン問題があるため、最初のステップとして raw モジュールを使い、静的IPアドレスへの変更や、必要なPython環境のセットアップを行うのが安全です。
 
 ```yaml
 ---
