@@ -22,19 +22,23 @@
 
 ```plantuml
 @startuml
-title フローチャート雛形
+title ユニット駆動時ログ収集機能
 
 start
 
 note right
-  関数実行に失敗した場合は
+  関数実行に失敗した場合、
   異常時処理を実施し、
   異常終了する。
 end note
 
-:関数Aを実行;
-:関数Bを実行;
-
+:ログ取得開始(start());
+:ユニット駆動(drive());
+:ログ取得終了(end());
+:ログ解析(analyze());
+if (ログ解析に失敗？) then (Yes)
+  :リカバリ処理(recovery());
+endif
 stop
 @enduml
 ```
