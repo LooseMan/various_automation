@@ -22,7 +22,16 @@
 
 ```plantuml
 @startuml
-title ユニット駆動時ログ収集機能
+
+<style>
+activityDiagram {
+  activity {
+    HorizontalAlignment center
+  }
+}
+</style>
+
+title ユニット駆動時ログ収集\n(collect())
 
 start
 
@@ -32,13 +41,12 @@ note right
   異常終了する。
 end note
 
-:ログ取得開始(start());
-:ユニット駆動(drive());
-:ログ取得終了(end());
-:ログ解析(analyze());
-if (ログ解析に失敗？) then (Yes)
-  :リカバリ処理(recovery());
-endif
-stop
+:ログ取得開始\n(start());
+:ユニット駆動\n(drive());
+:ログ取得終了\n(end());
+:ログ解析\n(analyze());
+
+end
+
 @enduml
 ```
