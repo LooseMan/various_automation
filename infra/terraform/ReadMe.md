@@ -410,3 +410,50 @@ terraform apply
 ```
 
 なお、cloud-init用のisoは`/var/lib/libvirt/images/commoninit.iso`としてlibvirtサーバ上に作成される。
+
+### data と resource
+
+terraform がライフサイクル（作成・更新・削除）を管理する場合にresourceを使用する。
+外部システムがライフサイクルを管理し、terraform は属性情報（ポインタ）を取得する場合にdataを使用する。
+
+#### データ（data）ソース：ポインタ（参照）
+
+- 役割:
+  すでにインフラ上に存在する「実体」の情報を外から覗き見して、パスやIDなどの属性情報（ポインタ）を取得するためだけに使います。
+- ライフサイクル:
+  Terraformは、この対象に対して作成・変更・削除などの操作を一切行いません。
+- エラー条件:
+  実行時に、指定した名前や条件に一致する実体が「存在しない場合」にエラーになります。
+
+#### リソース（resource）の動き：作成・削除の対象
+
+- 役割:
+  Terraform自身が「作成し、状態を管理し、不要になったら削除する」ためのデータ定義です。
+- ライフサイクル:
+  tfstate（管理簿）を見ながら、コードの定義通りになるように実体をコントロールします。
+- エラー条件:
+  tfstate に登録がない（＝Terraformとしては初めて作る認識の）状態で、いざ実体を作ろうとした時に、すでに同名の実体が「存在する場合」に、衝突してエラー（Already exists）になります。
+
+#### data と resource の併用例（バッキングイメージ）
+
+```hcl
+
+# 1. 既存のベースイメージを参照
+data ”libvirt_volume" "base_image" {
+  # Ansibleが配置したファイル名
+  name = "base-os-image.qcow2"
+  # 配置先のストレージプール名
+  pool = "default"
+}
+
+# 2. 各VM用の差分イメージを定義
+resource "libvirt_volume" "overlay_image" {
+  name           = "${each.key}-disk.qcow2"
+  # dataのIDを安全に紐付け
+  base_volume_id = data.libvirt_volume.base_image.id
+  pool           = "default"
+}
+
+```
+
+pool はイメージ保存先のエイリアスであり、pool 経由でイメージを参照することで、環境ごとの実パスの違いを吸収できる。
